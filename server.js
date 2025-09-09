@@ -20,12 +20,7 @@ app.use(morgan("dev")); // logging
 app.use(errorHandler);
 
 // Connect Database
-connectMongoDB()
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => {
-    console.error("MongoDB connection failed:", err.message);
-    process.exit(1);
-  });
+connectMongoDB();
 
 // Health check route
 app.get("/", (req, res) => {
@@ -43,6 +38,9 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
+const server = app.listen(PORT, () =>
+  console.log(`Server running on port ${PORT}`)
+);
+// For testing purposes
+server.close();
 export default app;

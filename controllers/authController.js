@@ -27,9 +27,20 @@ export const registerUser = async (req, res) => {
 
     console.log(`User registered: ${user.email} (id: ${user._id})`);
 
+    // Generate tokens
+    const { accessToken, refreshToken } = generateTokens(user._id, user.role);
+    user.refreshToken = refreshToken;
+    await user.save();
+
     res.status(201).json({
-      message: "User registered",
-      user: { id: user._id, name: user.name, role: user.role },
+      token: accessToken, // 👈 so tests can use res.body.token
+      refreshToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
     console.error("Error in register:", error.message);
@@ -56,16 +67,20 @@ export const loginUser = async (req, res) => {
     }
 
     const { accessToken, refreshToken } = generateTokens(user._id, user.role);
-
     user.refreshToken = refreshToken;
     await user.save();
 
     console.log(`Login successful: ${email} (id: ${user._id})`);
 
     res.json({
-      accessToken,
+      token: accessToken, // 👈 matches test expectations
       refreshToken,
-      user: { id: user._id, name: user.name, role: user.role },
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
     console.error("Error in login:", error.message);
@@ -94,7 +109,7 @@ export const refreshAccessToken = async (req, res) => {
       { expiresIn: "15m" }
     );
 
-    res.json({ accessToken });
+    res.json({ token: accessToken });
   } catch (error) {
     console.error("Refresh error:", error.message);
     res.status(403).json({ message: "Invalid or expired refresh token" });
