@@ -3,18 +3,46 @@ import {
   addAvailability,
   getAvailability,
   getAllProfessors,
+  getProfessorAppointments,
 } from "../controllers/professorController.js";
 import { protect, isProfessor } from "../middlewares/authMiddleware.js";
+import { body } from "express-validator";
 
 const router = Router();
 
-// Public route: Get all professors
+/**
+ * @route   GET /professor
+ * @desc    Public - List all professors
+ */
 router.get("/", getAllProfessors);
 
-// Professor adds slots (protected, only professors)
-router.post("/availability", protect, isProfessor, addAvailability);
+/**
+ * @route   POST /professor/availability
+ * @desc    Professors add availability slots
+ */
+router.post(
+  "/availability",
+  protect,
+  isProfessor,
+  [
+    body("date").notEmpty().withMessage("Date is required"),
+    body("timeSlots")
+      .isArray({ min: 1 })
+      .withMessage("At least one time slot is required"),
+  ],
+  addAvailability
+);
 
-// Public route: Anyone (students/professors) can view slots
+/**
+ * @route   GET /professor/:id/availability
+ * @desc    Public - Get slots for a professor (?date=optional filter)
+ */
 router.get("/:id/availability", getAvailability);
+
+/**
+ * @route   GET /professor/appointments
+ * @desc    Professors view their appointments (?date & ?status filters, pagination)
+ */
+router.get("/appointments", protect, isProfessor, getProfessorAppointments);
 
 export default router;

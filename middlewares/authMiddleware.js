@@ -14,7 +14,8 @@ export async function protect(req, res, next) {
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      const user = await User.findById(decoded.id).select("password");
+      const user = await User.findById(decoded.id).select("-password");
+
       if (!user) {
         return res.status(401).json({ msg: "User not found, invalid token" });
       }
@@ -34,7 +35,7 @@ export async function protect(req, res, next) {
 
 // Professor-only middleware
 export function isProfessor(req, res, next) {
-  if (req.user && req.user.role === "professor") {
+  if (req.user?.role === "professor") {
     return next();
   }
   return res.status(403).json({ msg: "Access denied, professors only" });
