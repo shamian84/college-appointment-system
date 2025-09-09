@@ -7,6 +7,7 @@ import connectMongoDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import professorRoutes from "./routes/professorRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
+import { errorHandler } from "./middlewares/errorHandler.js";
 
 // Load environment variables
 dotenv.config();
@@ -16,13 +17,14 @@ const app = express();
 // Middleware
 app.use(express.json()); // parse JSON bodies
 app.use(morgan("dev")); // logging
+app.use(errorHandler);
 
 // Connect Database
 connectMongoDB()
   .then(() => console.log("MongoDB connected"))
   .catch((err) => {
     console.error("MongoDB connection failed:", err.message);
-    process.exit(1); // stop server if DB fails
+    process.exit(1);
   });
 
 // Health check route
@@ -38,12 +40,6 @@ app.use("/student", studentRoutes);
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ msg: "Route not found" });
-});
-
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error("Server Error:", err.stack);
-  res.status(500).json({ msg: "Something went wrong", error: err.message });
 });
 
 const PORT = process.env.PORT || 5000;

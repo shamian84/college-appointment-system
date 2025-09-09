@@ -2,17 +2,19 @@ import User from "../models/User.js";
 import Availability from "../models/Availability.js";
 import Appointment from "../models/Appointment.js";
 import { validationResult } from "express-validator";
+import { reopenSlot } from "../utils/slotHelper.js";
 
-// Public - Get all professors (with optional pagination)
+//  Public - Get all professors (with pagination)
 export async function getAllProfessors(req, res) {
   try {
-    const { page = 1, limit = 10 } = req.query;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
     const professors = await User.find({ role: "professor" })
       .select("name email role")
       .skip(skip)
-      .limit(Number(limit));
+      .limit(limit);
 
     const total = await User.countDocuments({ role: "professor" });
 
@@ -22,22 +24,24 @@ export async function getAllProfessors(req, res) {
         .json({ success: false, msg: "No professors found" });
     }
 
-    res.json({
+    return res.json({
       success: true,
       count: professors.length,
       total,
-      page: Number(page),
+      page,
       data: professors,
     });
   } catch (err) {
-    console.error("Error in getAllProfessors:", err.message);
-    res
-      .status(500)
-      .json({ success: false, msg: "Server error while fetching professors" });
+    console.error(" Error in getAllProfessors:", err.message);
+    return res.status(500).json({
+      success: false,
+      msg: "Server error while fetching professors",
+      error: err.message,
+    });
   }
 }
 
-// Professors add availability
+//  Professors add availability
 export async function addAvailability(req, res) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -65,20 +69,22 @@ export async function addAvailability(req, res) {
       timeSlots: timeSlots.map((slot) => ({ time: slot, isBooked: false })),
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       msg: "Availability saved successfully",
       data: availability,
     });
   } catch (err) {
-    console.error("Error in addAvailability:", err.message);
-    res
-      .status(500)
-      .json({ success: false, msg: "Server error while adding availability" });
+    console.error(" Error in addAvailability:", err.message);
+    return res.status(500).json({
+      success: false,
+      msg: "Server error while adding availability",
+      error: err.message,
+    });
   }
 }
 
-// Public - View professor slots 
+//  Public - View professor slots
 export async function getAvailability(req, res) {
   try {
     const { id: professorId } = req.params;
@@ -95,31 +101,69 @@ export async function getAvailability(req, res) {
         .json({ success: false, msg: "No availability found" });
     }
 
-    res.json({ success: true, count: slots.length, data: slots });
+    return res.json({
+      success: true,
+      count: slots.length,
+      data: slots,
+    });
   } catch (err) {
-    console.error("Error in getAvailability:", err.message);
-    res.status(500).json({
+    console.error(" Error in getAvailability:", err.message);
+    return res.status(500).json({
       success: false,
       msg: "Server error while fetching availability",
+      error: err.message,
     });
   }
 }
 
-// Professors view their appointments
+//  Public - Get availability of all professors
+export async function getAllAvailability(req, res) {
+  try {
+    const { date } = req.query; // optional filter
+    const query = {};
+    if (date) query.date = date;
+
+    const slots = await Availability.find(query)
+      .populate("professorId", "name email role") // show professor info
+      .sort({ date: 1 });
+
+    if (!slots.length) {
+      return res
+        .status(404)
+        .json({ success: false, msg: "No availability found" });
+    }
+
+    return res.json({
+      success: true,
+      count: slots.length,
+      data: slots,
+    });
+  } catch (err) {
+    console.error(" Error in getAllAvailability:", err.message);
+    return res.status(500).json({
+      success: false,
+      msg: "Server error while fetching availability",
+      error: err.message,
+    });
+  }
+}
+
+//  Professors view their appointments
 export async function getProfessorAppointments(req, res) {
   try {
-    const { date, status, page = 1, limit = 10 } = req.query;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
     const query = { professorId: req.user._id };
-    if (date) query.date = date;
-    if (status) query.status = status;
+    if (req.query.date) query.date = req.query.date;
+    if (req.query.status) query.status = req.query.status;
 
     const appointments = await Appointment.find(query)
       .populate("studentId", "name email")
       .sort({ date: 1, time: 1 })
       .skip(skip)
-      .limit(Number(limit));
+      .limit(limit);
 
     const total = await Appointment.countDocuments(query);
 
@@ -129,40 +173,73 @@ export async function getProfessorAppointments(req, res) {
         .json({ success: false, msg: "No appointments found" });
     }
 
-    res.json({
+    return res.json({
       success: true,
       count: appointments.length,
       total,
-      page: Number(page),
+      page,
       data: appointments,
     });
   } catch (err) {
-    console.error("Error in getProfessorAppointments:", err.message);
-    res.status(500).json({
+    console.error(" Error in getProfessorAppointments:", err.message);
+    return res.status(500).json({
       success: false,
       msg: "Server error while fetching appointments",
+      error: err.message,
     });
   }
 }
-import { reopenSlot } from "../utils/slotHelper.js";
 
-// Student sees all their bookings
-export async function getStudentBookings(req, res) {
+//  Professor cancels a booking
+export async function cancelBookingByProfessor(req, res) {
   try {
-    const bookings = await Appointment.find({ studentId: req.user._id })
-      .populate("professorId", "name email")
-      .sort({ date: 1, time: 1 })
-      .lean();
+    const { id } = req.params; // appointmentId
+    const { reason } = req.body;
 
-    if (!bookings.length) {
-      return res.status(404).json({ msg: "No bookings found" });
+    const appointment = await Appointment.findOne({
+      _id: id,
+      professorId: req.user._id,
+    }).populate("studentId", "name email");
+
+    if (!appointment) {
+      return res
+        .status(404)
+        .json({ success: false, msg: "Appointment not found" });
     }
 
-    return res.json({ count: bookings.length, bookings });
+    if (appointment.status !== "Booked") {
+      return res.status(400).json({
+        success: false,
+        msg: `Appointment cannot be cancelled, current status: ${appointment.status}`,
+      });
+    }
+
+    appointment.status = "Cancelled";
+    appointment.cancellationNote = reason || "Cancelled by professor";
+    await appointment.save();
+
+    await reopenSlot(
+      appointment.professorId,
+      appointment.date,
+      appointment.time
+    );
+
+    //  Notification placeholder
+    console.log(
+      ` Notify ${appointment.studentId.email} (${appointment.studentId.name}): Appointment on ${appointment.date} at ${appointment.time} cancelled. Reason: ${appointment.cancellationNote}`
+    );
+
+    return res.json({
+      success: true,
+      msg: "Appointment cancelled, student notified (console), slot reopened",
+      data: appointment,
+    });
   } catch (err) {
-    console.error("Error in getStudentBookings:", err.message);
-    return res
-      .status(500)
-      .json({ msg: "Server error while fetching bookings" });
+    console.error(" Error in cancelBookingByProfessor:", err.message);
+    return res.status(500).json({
+      success: false,
+      msg: "Server error while cancelling booking",
+      error: err.message,
+    });
   }
 }

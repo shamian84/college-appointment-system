@@ -29,4 +29,4 @@ router.get("/bookings", protect, getStudentBookings);
  */
 router.patch("/bookings/:id/cancel", protect, cancelOwnBooking);
 
-export default router; // ✅ this fixes the "does not provide an export named 'default'" error
+export default router; 
