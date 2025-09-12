@@ -1,6 +1,6 @@
 import request from "supertest";
 import mongoose from "mongoose";
-import app from "../server.js";
+import { app, server } from "../server.js";
 
 let studentToken, professorToken, professorId, appointmentId;
 
@@ -14,12 +14,9 @@ describe("E2E Flow: Register → Login → Availability → Book → Cancel", ()
   });
 
   afterAll(async () => {
-    // Clean collections for next test run
-    const collections = mongoose.connection.collections;
-    for (const key in collections) {
-      await collections[key].deleteMany({});
-    }
+    await mongoose.connection.dropDatabase();
     await mongoose.connection.close();
+    server.close();
   });
 
   test("Register Professor", async () => {

@@ -1,0 +1,327 @@
+{
+	"info": {
+		"_postman_id": "d54be676-0422-4d58-b8ff-fbc7bb76c551",
+		"name": "College Appoinment System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39390382"
+	},
+	"item": [
+		{
+			"name": "Register Professor",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Prof Gyan\",\r\n  \"email\": \"gyan98@example.com\",\r\n  \"password\": \"1928374655\",\r\n  \"role\": \"professor\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/register",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login Professor",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const data = pm.response.json();\r",
+							"pm.environment.set(\"professorToken\", data.token || data.accessToken);\r",
+							"pm.environment.set(\"professorId\", data.user.id);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"gyan98@example.com\",\r\n  \"password\": \"1928374655\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Student Register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"KS Kumar\",\r\n  \"email\": \"KKumar@example.com\",\r\n  \"password\": \"13245768\",\r\n  \"role\": \"student\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/register",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Student Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const data = pm.response.json();\r",
+							"pm.environment.set(\"studentToken\", data.token || data.accessToken);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"KKumar@example.com\",\r\n  \"password\": \"13245768\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Professor Adds Availability",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YzNiYWQ2NDdmOGJjNjI1YjJhZGU1YyIsInJvbGUiOiJwcm9mZXNzb3IiLCJpYXQiOjE3NTc2NTgyMjAsImV4cCI6MTc1NzY2MTgyMH0.NIqK92ol05ophwl_AWIj-00jEpBP7ujkqj_wc39lZ4g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"date\": \"2025-09-20\",\r\n  \"timeSlots\": [\"10:00-11:00\", \"11:00-12:00\"]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/professor/availability",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"professor",
+						"availability"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Available professor",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/professor/availability/all",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"professor",
+						"availability",
+						"all"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Student Books Appointment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const data = pm.response.json();\r",
+							"pm.environment.set(\"appointmentId\", data.appointment._id);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YzNiYmU3NDdmOGJjNjI1YjJhZGU2MiIsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzU3NjU4MjEzLCJleHAiOjE3NTc2NjE4MTN9.vGKrs8jj7MM3nURlRrs2Pq5JEG4hqXX_Rs6DFp9bf4c",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"date\": \"2025-09-20\",\r\n  \"time\": \"10:00-11:00\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/student/book/{{professorId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"student",
+						"book",
+						"{{professorId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "New Professor Cancels Appointment Request",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YzNiYWQ2NDdmOGJjNjI1YjJhZGU1YyIsInJvbGUiOiJwcm9mZXNzb3IiLCJpYXQiOjE3NTc2NTgyMjAsImV4cCI6MTc1NzY2MTgyMH0.NIqK92ol05ophwl_AWIj-00jEpBP7ujkqj_wc39lZ4g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"reason\": \"Busy in Meeting\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/professor/appointments/{{appointmentId}}/cancel",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"professor",
+						"appointments",
+						"{{appointmentId}}",
+						"cancel"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Student Checks Bookings",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4YzNiYmU3NDdmOGJjNjI1YjJhZGU2MiIsInJvbGUiOiJzdHVkZW50IiwiaWF0IjoxNzU3NjU4MjEzLCJleHAiOjE3NTc2NjE4MTN9.vGKrs8jj7MM3nURlRrs2Pq5JEG4hqXX_Rs6DFp9bf4c",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/student/bookings",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"student",
+						"bookings"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
